@@ -1,4 +1,8 @@
-#[derive(Debug, Clone, Copy)]
+use crossterm::style::{Color, Colors};
+
+use crate::buffer::Cell;
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Point {
     pub x: usize,
     pub y: usize,
@@ -10,13 +14,16 @@ pub struct Point {
 //     }
 // }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Space {
     Obstacle,
     Empty,
     Visited,
     Start(Point),
     End(Point),
+}
+
+impl Space {
 }
 
 pub struct Grid {

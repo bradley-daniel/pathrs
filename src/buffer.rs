@@ -1,10 +1,16 @@
-use std::io;
+use std::{io, ops::Deref};
 
 use crossterm::{
-    style::{style, Color, Colors, PrintStyledContent, ResetColor, SetColors},
+    cursor::MoveTo,
+    style::{
+        style, Color, Colors, PrintStyledContent, ResetColor, SetBackgroundColor, SetColors,
+        SetForegroundColor, Print,
+    },
     terminal::{Clear, ClearType},
     QueueableCommand,
 };
+
+use crate::grid::{Grid, Space};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub struct Cell {
@@ -21,6 +27,54 @@ impl Default for Cell {
                 background: None,
             },
         }
+    }
+}
+
+impl From<Space> for Cell {
+    fn from(value: Space) -> Self {
+        match value {
+            Space::Obstacle => Cell {
+                ch: ' ',
+                colors: Colors {
+                    foreground: None,
+                    background: Some(Color::Red),
+                },
+            },
+            Space::Empty => Cell {
+                ch: ' ',
+                colors: Colors {
+                    foreground: None,
+                    background: None,
+                },
+            },
+            Space::Visited => Cell {
+                ch: 'X',
+                colors: Colors {
+                    foreground: Some(Color::White),
+                    background: None,
+                },
+            },
+            Space::Start(_) => Cell {
+                ch: 'o',
+                colors: Colors {
+                    foreground: None,
+                    background: Some(Color::Blue),
+                },
+            },
+            Space::End(_) => Cell {
+                ch: ' ',
+                colors: Colors {
+                    foreground: None,
+                    background: Some(Color::Green),
+                },
+            },
+        }
+    }
+}
+
+impl From<&Space> for Cell {
+    fn from(value: &Space) -> Self {
+        Self::from(*value)
     }
 }
 
@@ -61,7 +115,7 @@ impl Buffer {
     }
 
     pub fn flush(&self, wrte: &mut impl io::Write) -> io::Result<()> {
-        // crossterm::execute!(wrte, Clear(ClearType::All))?;
+        wrte.queue(Clear(ClearType::All))?;
         for &Cell { ch, colors } in self.cells.iter() {
             let styled_content = style(ch);
             wrte.queue(SetColors(colors))?;

@@ -1,63 +1,113 @@
-use std::time::Duration;
+use std::{
+    collections::VecDeque,
+    ops::Add,
+    sync::{Arc, Mutex}, thread, time::Duration,
+};
 
+use crate::grid::{Grid, Point, Space};
 use rand::Rng;
 
-use crate::grid::{Grid, Space};
-
-// pub trait Maze {
-//     fn draw(&mut self) -> Grid;
-// }
-//
 pub enum Orientation {
     Horz,
     Vert,
 }
 
-pub struct RandomMaze<'a> {
-    grid: &'a mut Grid,
+pub struct RandomMaze {
+    pub grid: Arc<Mutex<Grid>>,
+    pub start: Point,
 }
 
-impl<'a> RandomMaze<'a> {
-    pub fn new(grid: &'a mut Grid) -> Self {
-        Self { grid }
+impl RandomMaze {
+    pub fn new(grid: Arc<Mutex<Grid>>) -> Self {
+        Self {
+            grid,
+            start: Point::default(),
+        }
     }
 
-    pub fn draw_wall(&mut self, start: usize, end: usize, direction: Orientation) {
-        todo!();
-    }
-
-    pub fn build_maze(&mut self) {
-        self.grid.clear();
-        let mut h = self.grid.height;
-        let mut w = self.grid.width;
-        if w % 2 == 0 {
-            w -= 1;
-        }
-        if h % 2 == 0 {
-            h -= 1;
-        }
-
+    fn randomize_start(&mut self) -> Point {
         let mut rng = rand::thread_rng();
-        for space in self.grid.grid.iter_mut() {
-            if rng.gen_bool(0.2) {
-                *space = Space::Obstacle;
+        let mut grid = self.grid.lock().unwrap();
+        loop {
+            let x = rng.gen_range(0..grid.width);
+            let y = rng.gen_range(0..grid.height);
+            if let Some(Space::Empty) = grid.get(x, y) {
+                let point = Point { x, y };
+                *grid.get_mut(x, y).unwrap() = Space::Start(point);
+                return point;
             }
         }
     }
-    fn divide(&mut self, width: usize, height: usize) {
-        if (width < 2 || height < 2) {
-            return;
-        };
 
-        let (x_begin, y_begin, oirientation) = self.randomize_wall(width, height);
+    fn randomize_end(&mut self) -> Point {
+        let mut rng = rand::thread_rng();
+        let mut grid = self.grid.lock().unwrap();
+        loop {
+            let x = rng.gen_range(0..grid.width);
+            let y = rng.gen_range(0..grid.height);
+            if let Some(Space::Empty) = grid.get(x, y) {
+                let point = Point { x, y };
+                *grid.get_mut(x, y).unwrap() = Space::End(point);
+                return point;
+            }
+        }
     }
 
-    fn randomize_wall(&mut self, width: usize, height: usize) -> (usize, usize, Orientation) {
-        let mut rng = rand::thread_rng();
-        let x = rng.gen_range(0..(width / 2) - 1);
-        let y = rng.gen_range(0..(height / 2) - 1);
-        // let t_height = (height - 1) / 2;
-        // let t_width = (width - 1) / 2;
-        return (0, 0, Orientation::Horz);
+    pub fn build_maze(&mut self) {
+        {
+            let mut grid = self.grid.lock().unwrap();
+            grid.clear();
+            let mut rng = rand::thread_rng();
+            for space in grid.grid.iter_mut() {
+                if rng.gen_bool(0.2) {
+                    *space = Space::Obstacle;
+                }
+            }
+        }
+        self.start = self.randomize_start();
+        self.randomize_end();
+    }
+}
+
+fn get_adjacent(current: Point, grid: &Grid) -> VecDeque<Point> {
+    let x = current.x as i64;
+    let y = current.y as i64;
+    vec![(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+        .into_iter()
+        .filter_map(|cord| {
+            let x: Result<usize, _> = cord.0.try_into();
+            let y: Result<usize, _> = cord.1.try_into();
+            if let (Ok(x), Ok(y)) = (x, y) {
+                Some(Point { x, y })
+            } else {
+                None
+            }
+        })
+        .into_iter()
+        .filter_map(|point| {
+            if let Some(Space::Empty | Space::End(_)) = grid.get(point.x, point.y) {
+                Some(point)
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
+    let mut queue = VecDeque::from([start]);
+    'outer: while !queue.is_empty() {
+        thread::sleep(Duration::from_millis(15));
+        let current = queue.pop_front().unwrap();
+        let mut data = grid.lock().unwrap();
+        let mut adjacents = get_adjacent(current, &data);
+        for point in &adjacents {
+            if let Some(Space::End(_)) = data.get(point.x, point.y) {
+                break 'outer;
+            } else {
+                *data.get_mut(point.x, point.y).unwrap() = Space::Visited;
+            }
+        }
+        queue.append(&mut adjacents);
     }
 }
