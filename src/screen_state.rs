@@ -1,12 +1,12 @@
 use std::io::{self, stdout};
 
-use crossterm::terminal::{self, EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::{terminal::{self, EnterAlternateScreen, LeaveAlternateScreen}, cursor::{Hide, Show}};
 
 pub struct ScreenState;
 
 impl ScreenState {
     pub fn enable() -> io::Result<Self> {
-        crossterm::execute!(stdout(), EnterAlternateScreen)?;
+        crossterm::execute!(stdout(), EnterAlternateScreen, Hide)?;
         terminal::enable_raw_mode()?;
 
         let default_hook = std::panic::take_hook();
@@ -21,7 +21,7 @@ impl ScreenState {
         let _ = terminal::disable_raw_mode().map_err(|err| {
             eprintln!("ERROR: disable_raw_mode: {err}");
         });
-        let _ = crossterm::execute!(stdout(), LeaveAlternateScreen).map_err(|err| {
+        let _ = crossterm::execute!(stdout(), LeaveAlternateScreen, Show).map_err(|err| {
             eprintln!("ERROR: LeaveAlternateScreen: {err}");
         });
     }

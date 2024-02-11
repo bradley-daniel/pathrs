@@ -1,11 +1,8 @@
-use std::{io, ops::Deref};
+use std::io;
 
 use crossterm::{
     cursor::MoveTo,
-    style::{
-        style, Color, Colors, PrintStyledContent, ResetColor, SetBackgroundColor, SetColors,
-        SetForegroundColor, Print,
-    },
+    style::{style, Color, Colors, PrintStyledContent, ResetColor, SetColors},
     terminal::{Clear, ClearType},
     QueueableCommand,
 };
@@ -37,7 +34,7 @@ impl From<Space> for Cell {
                 ch: ' ',
                 colors: Colors {
                     foreground: None,
-                    background: Some(Color::Red),
+                    background: Some(Color::DarkRed),
                 },
             },
             Space::Empty => Cell {
@@ -48,24 +45,31 @@ impl From<Space> for Cell {
                 },
             },
             Space::Visited => Cell {
-                ch: 'X',
+                ch: 'O',
                 colors: Colors {
                     foreground: Some(Color::White),
                     background: None,
                 },
             },
-            Space::Start(_) => Cell {
-                ch: 'o',
+            Space::Path => Cell {
+                ch: ' ',
                 colors: Colors {
                     foreground: None,
-                    background: Some(Color::Blue),
+                    background: Some(Color::AnsiValue(7)),
+                },
+            },
+            Space::Start(_) => Cell {
+                ch: ' ',
+                colors: Colors {
+                    foreground: None,
+                    background: Some(Color::DarkBlue),
                 },
             },
             Space::End(_) => Cell {
                 ch: ' ',
                 colors: Colors {
                     foreground: None,
-                    background: Some(Color::Green),
+                    background: Some(Color::DarkGreen),
                 },
             },
         }
@@ -121,6 +125,25 @@ impl Buffer {
             wrte.queue(SetColors(colors))?;
             wrte.queue(PrintStyledContent(styled_content))?;
             wrte.queue(ResetColor)?;
+        }
+        wrte.flush()?;
+        return Ok(());
+    }
+
+    pub fn flush_diff(&mut self, wrte: &mut impl io::Write, grid: &Grid) -> io::Result<()> {
+        for (i, (space, cell)) in grid.spaces.iter().zip(self.cells.iter_mut()).enumerate() {
+            let x = (i % grid.width).try_into().unwrap();
+            let y = (i / grid.width).try_into().unwrap();
+            let new_cell = Cell::from(space);
+            if new_cell != *cell {
+                *cell = new_cell;
+                let (ch, colors) = (cell.ch, cell.colors);
+                let styled_content = style(ch);
+                wrte.queue(MoveTo(x, y))?;
+                wrte.queue(SetColors(colors))?;
+                wrte.queue(PrintStyledContent(styled_content))?;
+                wrte.queue(ResetColor)?;
+            }
         }
         wrte.flush()?;
         return Ok(());

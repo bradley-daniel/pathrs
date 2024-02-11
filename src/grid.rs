@@ -1,33 +1,23 @@
-use crossterm::style::{Color, Colors};
-
-use crate::buffer::Cell;
-
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Point {
     pub x: usize,
     pub y: usize,
 }
 
-// impl Point {
-//     fn new(x: usize, y: usize) -> Self {
-//         Self { x, y }
-//     }
-// }
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Space {
     Obstacle,
     Empty,
     Visited,
+    Path,
     Start(Point),
     End(Point),
 }
 
-impl Space {
-}
+impl Space {}
 
 pub struct Grid {
-    pub grid: Vec<Space>,
+    pub spaces: Vec<Space>,
     pub width: usize,
     pub height: usize,
 }
@@ -35,7 +25,7 @@ pub struct Grid {
 impl Grid {
     pub fn new(width: usize, height: usize) -> Self {
         return Self {
-            grid: vec![Space::Empty; width * height],
+            spaces: vec![Space::Empty; width * height],
             width,
             height,
         };
@@ -43,32 +33,34 @@ impl Grid {
 
     pub fn get(&self, x: usize, y: usize) -> Option<&Space> {
         let index = y * self.width + x;
-        self.grid.get(index)
+        if x >= self.width || y >= self.height {
+            None
+        } else {
+            self.spaces.get(index)
+        }
     }
 
     pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut Space> {
-        let pos = y * self.width + x;
-        self.grid.get_mut(pos)
+        let index = y * self.width + x;
+        if x >= self.width || y >= self.height {
+            None
+        } else {
+            self.spaces.get_mut(index)
+        }
+    }
+
+    pub fn index(&self, x: usize, y: usize) -> Option<usize> {
+        if y >= self.height || x >= self.width {
+            None
+        } else {
+            Some(y * self.width + x)
+        }
     }
 
     pub fn clear(&mut self) -> &Self {
-        for space in self.grid.iter_mut() {
+        for space in self.spaces.iter_mut() {
             *space = Space::Empty;
         }
         return self;
     }
-
-    // pub fn with_start(&mut self, x: usize, y: usize) -> Option<&Self> {
-    //     let space = self.get_mut(x, y)?;
-    //     let point = Point::new(x, y);
-    //     *space = Space::Start(point);
-    //     return Some(self);
-    // }
-    //
-    // pub fn with_end(&mut self, x: usize, y: usize) -> Option<&Self> {
-    //     let space = self.get_mut(x, y)?;
-    //     let point = Point::new(x, y);
-    //     *space = Space::End(point);
-    //     return Some(self);
-    // }
 }

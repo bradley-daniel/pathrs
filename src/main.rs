@@ -11,7 +11,7 @@ use std::thread;
 use std::time::Duration;
 use std::{io::stdout, sync::Arc};
 
-use buffer::{Buffer, Cell};
+use buffer::Buffer;
 use screen_state::ScreenState;
 
 fn main() -> std::io::Result<()> {
@@ -27,34 +27,32 @@ fn main() -> std::io::Result<()> {
     let (width, height) = terminal::size()?;
 
     let grid = grid::Grid::new(width as usize, height as usize);
-    let grid = Arc::new(Mutex::new(grid));
 
     let mut buf = Buffer::new(width as usize, height as usize);
+    let grid = Arc::new(Mutex::new(grid));
 
     let mut maze = maze::RandomMaze::new(grid);
     maze.build_maze();
     let start = maze.start;
+    println!(
+        "Start: {}, {} : index: {}\n",
+        start.x,
+        start.y,
+        maze.grid.lock().unwrap().index(start.x, start.y).unwrap()
+    );
 
     let thread_grid = maze.grid.clone();
     let maze_thread = thread::spawn(move || {
         bfs(start, thread_grid);
     });
 
-    // let grid = maze.grid.lock().unwrap();
-    // for (space, cell) in grid.grid.iter().zip(buf.cells.iter_mut()) {
-    //     *cell = Cell::from(space);
-    // }
-    // buf.flush(&mut stdout)?;
-    // drop(grid);
-
     while !maze_thread.is_finished() {
-        std::thread::sleep(Duration::from_millis(150));
+        std::thread::sleep(Duration::from_millis(15));
         let grid = maze.grid.lock().unwrap();
-        for (space, cell) in grid.grid.iter().zip(buf.cells.iter_mut()) {
-            *cell = Cell::from(space);
-        }
-        buf.flush(&mut stdout)?;
+        let _ = buf.flush_diff(&mut stdout, &grid);
     }
+    let _ = maze_thread.join();
+    // thread::sleep(Duration::from_secs(3));
 
     return Ok(());
 }
