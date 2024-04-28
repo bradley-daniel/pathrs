@@ -38,7 +38,7 @@ fn main() -> std::io::Result<()> {
         "Start: {}, {} : index: {}\n",
         start.x,
         start.y,
-        maze.grid.lock().unwrap().index(start.x, start.y).unwrap()
+        maze.grid.lock().unwrap().index(start).unwrap()
     );
 
     let thread_grid = maze.grid.clone();
@@ -54,5 +54,5 @@ fn main() -> std::io::Result<()> {
     let _ = maze_thread.join();
     // thread::sleep(Duration::from_secs(3));
 
-    return Ok(());
+    Ok(())
 }

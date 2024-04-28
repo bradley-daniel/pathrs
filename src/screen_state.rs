@@ -15,7 +15,7 @@ impl ScreenState {
             default_hook(info);
         }));
 
-        return Ok(Self);
+        Ok(Self)
     }
     pub fn disable() {
         let _ = terminal::disable_raw_mode().map_err(|err| {

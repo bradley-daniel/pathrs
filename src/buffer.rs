@@ -90,11 +90,11 @@ pub struct Buffer {
 
 impl Buffer {
     pub fn new(width: usize, height: usize) -> Self {
-        return Self {
+        Self {
             cells: vec![Cell::default(); width * height],
             width,
             height,
-        };
+        }
     }
 
     pub fn put(&mut self, x: usize, y: usize, ch: char, colors: Colors) -> Option<()> {
@@ -115,7 +115,7 @@ impl Buffer {
         for (cell, &ch) in self.cells.iter_mut().zip(chars.iter()) {
             *cell = Cell { ch, colors }
         }
-        return Some(());
+        Some(())
     }
 
     pub fn flush(&self, wrte: &mut impl io::Write) -> io::Result<()> {
@@ -127,7 +127,7 @@ impl Buffer {
             wrte.queue(ResetColor)?;
         }
         wrte.flush()?;
-        return Ok(());
+        Ok(())
     }
 
     pub fn flush_diff(&mut self, wrte: &mut impl io::Write, grid: &Grid) -> io::Result<()> {
@@ -146,6 +146,6 @@ impl Buffer {
             }
         }
         wrte.flush()?;
-        return Ok(());
+        Ok(())
     }
 }
