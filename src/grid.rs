@@ -1,20 +1,4 @@
-use crate::point::Point;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Space {
-    Obstacle,
-    Empty,
-    Visited,
-    Path,
-    Start(Point),
-    End(Point),
-}
-
-impl Space {
-    pub fn is_pathable(&self) -> bool {
-        matches!(self, Space::End(_) | Space::Empty)
-    }
-}
+use crate::{point::Point, space::Space};
 
 pub struct Grid {
     pub spaces: Vec<Space>,
@@ -89,9 +73,11 @@ impl Grid {
 // Assignment4_Tests Grid
 #[cfg(test)]
 mod test {
+    use super::{Grid, Space};
     use crate::point::Point;
 
-    use super::{Grid, Space};
+    use rand::{thread_rng, Rng};
+    use std::thread;
 
     #[test]
     fn manual_test_index() {
@@ -158,5 +144,29 @@ mod test {
             counter += 1;
         }
         assert!(expected.len() == counter)
+    }
+
+    // Found Cant have a grid size of width * height > usize::max
+    #[test]
+    fn fuzzy_test_get() {
+        let fuzzy_test = 10000;
+        (0..fuzzy_test)
+            .map(|_| {
+                let mut rng = thread_rng();
+                let width = rng.gen_range(0..10000);
+                let height = rng.gen_range(0..10000);
+                let grid = Grid::new(width, height);
+                thread::spawn(move || {
+                    let mut rng = thread_rng();
+                    let x = rng.gen_range(0..usize::MAX);
+                    let y = rng.gen_range(0..usize::MAX);
+                    grid.get(Point::new(x, y));
+                })
+                .join()
+                .ok()
+            })
+            .for_each(|result| {
+                assert_ne!(None, result);
+            })
     }
 }

@@ -5,7 +5,7 @@ use std::{
     time::Duration,
 };
 
-use crate::grid::{Grid, Space};
+use crate::{grid::Grid, space::Space};
 use crate::point::Point;
 use rand::Rng;
 

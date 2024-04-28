@@ -3,6 +3,7 @@ pub mod grid;
 pub mod maze;
 pub mod point;
 pub mod screen_state;
+pub mod space;
 
 use crossterm::event::{poll, read, Event, KeyCode};
 use crossterm::terminal;
@@ -29,7 +30,6 @@ fn main() -> std::io::Result<()> {
         let (width, height) = terminal::size()?;
         let grid = grid::Grid::new(width as usize, height as usize);
 
-        // let mut buf = Buffer::new(width as usize, height as usize);
         let grid = Arc::new(Mutex::new(grid));
 
         let mut maze = maze::RandomMaze::new(grid);
@@ -44,8 +44,6 @@ fn main() -> std::io::Result<()> {
         let writer_thread = thread::spawn(move || {
             let _ = writer_thread(maze_thread, maze);
         });
-
-        // let _ = writer_thread.join();
 
         if poll(Duration::from_millis(15))? {
             if let Event::Key(event) = read()? {
@@ -69,7 +67,7 @@ fn writer_thread(maze_thread: JoinHandle<()>, maze: RandomMaze) -> std::io::Resu
         let grid = maze.grid.lock().unwrap();
         let _ = buf.flush_diff(&mut stdout, &grid);
     }
-    thread::sleep(Duration::from_secs(2));
+    thread::sleep(Duration::from_millis(15));
     let _ = maze_thread.join();
     Ok(())
 }

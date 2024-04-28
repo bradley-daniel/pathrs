@@ -7,7 +7,8 @@ use crossterm::{
     QueueableCommand,
 };
 
-use crate::grid::{Grid, Space};
+use crate::space::Space;
+use crate::grid::Grid;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub struct Cell {
