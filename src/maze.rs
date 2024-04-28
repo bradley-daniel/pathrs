@@ -84,13 +84,16 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
         let mut empty_adj: VecDeque<Point> = data
             .adjacents_points(current)
             .into_iter()
-            .filter(|point| matches!(data.get(*point), Some(Space::Empty | Space::End(_))))
+            .filter(|point| match data.get(*point) {
+                Some(s) => s.is_pathable(),
+                _ => false,
+            })
             .collect();
 
-        let parent_index = data.index(current).unwrap();
+        let parent_index = data.unchecked_index(current);
 
         for adjacent in &empty_adj {
-            let adjacent_index = data.index(*adjacent).unwrap();
+            let adjacent_index = data.unchecked_index(*adjacent);
             pred[adjacent_index] = parent_index;
             if let Some(Space::End(_)) = data.get(*adjacent) {
                 end = adjacent_index;
@@ -101,6 +104,7 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
         }
         queue.append(&mut empty_adj);
     }
+
     let data = grid.lock().unwrap();
     let mut path: Vec<usize> = Vec::new();
 
@@ -109,6 +113,7 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
         path.push(crawl);
         crawl = pred[crawl];
     }
+
     drop(data);
 
     for value in path {

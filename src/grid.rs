@@ -10,6 +10,12 @@ pub enum Space {
     End(Point),
 }
 
+impl Space {
+    pub fn is_pathable(&self) -> bool {
+        matches!(self, Space::End(_) | Space::Empty)
+    }
+}
+
 pub struct Grid {
     pub spaces: Vec<Space>,
     pub width: usize,
@@ -41,6 +47,10 @@ impl Grid {
         } else {
             Some(point.index(self.width))
         }
+    }
+
+    pub fn unchecked_index(&self, point: Point) -> usize {
+        point.index(self.width)
     }
 
     pub fn clear(&mut self) -> &Self {
