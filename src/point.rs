@@ -19,7 +19,7 @@ impl Point {
 
 // Assignment4_Tests Point
 #[cfg(test)]
-mod test {
+mod point_tests {
 
     use super::*;
     use rand::*;

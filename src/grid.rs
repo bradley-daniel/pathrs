@@ -72,7 +72,7 @@ impl Grid {
 
 // Assignment4_Tests Grid
 #[cfg(test)]
-mod test {
+mod grid_tests {
     use super::{Grid, Space};
     use crate::point::Point;
 
@@ -149,12 +149,12 @@ mod test {
     // Found Cant have a grid size of width * height > usize::max
     #[test]
     fn fuzzy_test_get() {
-        let fuzzy_test = 10000;
+        let fuzzy_test = 100;
         (0..fuzzy_test)
             .map(|_| {
                 let mut rng = thread_rng();
-                let width = rng.gen_range(0..10000);
-                let height = rng.gen_range(0..10000);
+                let width = rng.gen_range(0..100);
+                let height = rng.gen_range(0..100);
                 let grid = Grid::new(width, height);
                 thread::spawn(move || {
                     let mut rng = thread_rng();

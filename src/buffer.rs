@@ -7,10 +7,10 @@ use crossterm::{
     QueueableCommand,
 };
 
-use crate::space::Space;
 use crate::grid::Grid;
+use crate::space::Space;
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Cell {
     pub ch: char,
     pub colors: Colors,
@@ -148,5 +148,83 @@ impl Buffer {
         }
         wrte.flush()?;
         Ok(())
+    }
+}
+
+// Assignment4_Tests Buffer
+#[cfg(test)]
+mod buffer_tests {
+    use super::{Buffer, Cell};
+    use crossterm::style::{Color, Colors};
+
+    #[test]
+    fn test_manual_put_buffer() {
+        let width = 10;
+        let height = 10;
+        let mut buf = Buffer::new(width, height);
+        let ch = 'X';
+        let colors = Colors::new(Color::Cyan, Color::Magenta);
+        let x = 5;
+        let y = 5;
+
+        buf.put(x, y, ch, colors);
+        let expected = Cell { ch, colors };
+        let acutal = buf.cells[buf.width * 5 + 5];
+
+        assert_eq!(expected, acutal);
+    }
+
+    #[test]
+    fn test_manual_puts_buffer() {
+        let width = 10;
+        let height = 10;
+        let mut buf = Buffer::new(width, height);
+        let ch = 'X';
+        let colors = Colors::new(Color::Cyan, Color::Magenta);
+        let x = 5;
+        let y = 5;
+
+        buf.put(x, y, ch, colors);
+        let expected = Cell { ch, colors };
+        let acutal = buf.cells[buf.width * 5 + 5];
+
+        assert_eq!(expected, acutal);
+    }
+}
+
+// Assignment4_Tests Cell
+#[cfg(test)]
+mod cell_tests {
+    use std::{sync::Arc, thread};
+
+    use rand::{seq::SliceRandom, thread_rng};
+
+    use crate::{point::Point, space::Space};
+
+    use super::*;
+
+    #[test]
+    fn test_munual_from_space() {
+        let fuzzy_test_num = 10000;
+
+        let spaces = Arc::new([
+            Space::Empty,
+            Space::Obstacle,
+            Space::End(Point::new(0, 0)),
+            Space::Start(Point::new(0, 0)),
+            Space::Path,
+        ]);
+
+        (0..fuzzy_test_num)
+            .map(|_| {
+                let spaces = spaces.clone();
+                thread::spawn(move || {
+                    let space = spaces.choose(&mut thread_rng()).unwrap();
+                    let _other: Cell = Cell::from(*space);
+                })
+                .join()
+                .ok()
+            })
+            .for_each(|value| assert_ne!(None, value));
     }
 }

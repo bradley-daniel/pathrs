@@ -16,3 +16,18 @@ impl Space {
     }
 }
 
+
+
+// Assignment4_Tests Space
+#[cfg(test)]
+mod space_tests {
+    use super::Space;
+
+    #[test]
+    fn manual_test_is_pathable() {
+        let space = Space::Path;
+        assert!(!space.is_pathable());
+        let space = Space::Empty;
+        assert!(space.is_pathable());
+    }
+}
