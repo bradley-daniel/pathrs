@@ -1,20 +1,4 @@
-use std::collections::VecDeque;
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct Point {
-    pub x: usize,
-    pub y: usize,
-}
-
-impl Point {
-    fn into_index(&self, width: usize) -> usize {
-        self.y * width + self.x
-    }
-
-    fn in_bound(&self, width: usize, height: usize) -> bool {
-        self.x >= width || self.y >= height
-    }
-}
+use crate::point::Point;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Space {
@@ -25,8 +9,6 @@ pub enum Space {
     Start(Point),
     End(Point),
 }
-
-// impl Space {}
 
 pub struct Grid {
     pub spaces: Vec<Space>,
@@ -44,17 +26,12 @@ impl Grid {
     }
 
     pub fn get(&self, point: Point) -> Option<Space> {
-        let index = point.into_index(self.width);
-        // let index = point.y * self.width + point.x;
-        // if x >= self.width || y >= self.height {
-        //     None
-        // } else {
+        let index = point.index(self.width);
         self.spaces.get(index).copied()
-        // }
     }
 
     pub fn get_mut(&mut self, point: Point) -> Option<&mut Space> {
-        let index = point.into_index(self.width);
+        let index = point.index(self.width);
         self.spaces.get_mut(index)
     }
 
@@ -62,7 +39,7 @@ impl Grid {
         if point.in_bound(self.width, self.height) {
             None
         } else {
-            Some(point.into_index(self.width))
+            Some(point.index(self.width))
         }
     }
 
@@ -82,10 +59,7 @@ impl Grid {
                 let x = x.checked_add_signed(direction.0);
                 let y = y.checked_add_signed(direction.1);
                 if let (Some(x), Some(y)) = (x, y) {
-                    match self.get(Point { x, y }) {
-                        Some(_) => Some(Point { x, y }),
-                        None => None,
-                    }
+                    self.get(Point { x, y }).map(|_| Point { x, y })
                 } else {
                     None
                 }

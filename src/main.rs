@@ -2,6 +2,7 @@ pub mod buffer;
 pub mod grid;
 pub mod maze;
 pub mod screen_state;
+pub mod point;
 
 use crossterm::terminal;
 use maze::bfs;
@@ -34,12 +35,6 @@ fn main() -> std::io::Result<()> {
     let mut maze = maze::RandomMaze::new(grid);
     maze.build_maze();
     let start = maze.start;
-    println!(
-        "Start: {}, {} : index: {}\n",
-        start.x,
-        start.y,
-        maze.grid.lock().unwrap().index(start).unwrap()
-    );
 
     let thread_grid = maze.grid.clone();
     let maze_thread = thread::spawn(move || {
@@ -52,7 +47,7 @@ fn main() -> std::io::Result<()> {
         let _ = buf.flush_diff(&mut stdout, &grid);
     }
     let _ = maze_thread.join();
-    // thread::sleep(Duration::from_secs(3));
+    thread::sleep(Duration::from_secs(2));
 
     Ok(())
 }

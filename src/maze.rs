@@ -5,7 +5,8 @@ use std::{
     time::Duration,
 };
 
-use crate::grid::{Grid, Point, Space};
+use crate::grid::{Grid, Space};
+use crate::point::Point;
 use rand::Rng;
 
 pub enum Orientation {
@@ -69,31 +70,6 @@ impl RandomMaze {
     }
 }
 
-// fn get_adjacent(current: Point, grid: &Grid) -> VecDeque<Point> {
-//     let x = current.x as i64;
-//     let y = current.y as i64;
-//     vec![(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
-//         .into_iter()
-//         .filter_map(|cord| {
-//             let x: Result<usize, _> = cord.0.try_into();
-//             let y: Result<usize, _> = cord.1.try_into();
-//             if let (Ok(x), Ok(y)) = (x, y) {
-//                 Some(Point { x, y })
-//             } else {
-//                 None
-//             }
-//         })
-//         .into_iter()
-//         .filter_map(|point| {
-//             if let Some(Space::Empty | Space::End(_)) = grid.get(point.x, point.y) {
-//                 Some(point)
-//             } else {
-//                 None
-//             }
-//         })
-//         .collect()
-// }
-
 pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
     let len = grid.lock().unwrap().spaces.len();
     let mut queue = VecDeque::from([start]);
@@ -105,18 +81,15 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
         thread::sleep(Duration::from_millis(2));
         let current = queue.pop_front().unwrap();
         let mut data = grid.lock().unwrap();
-        let mut adjacents: VecDeque<Point> = data
+        let mut empty_adj: VecDeque<Point> = data
             .adjacents_points(current)
             .into_iter()
-            .filter(|point| match data.get(*point) {
-                Some(Space::Empty | Space::End(_)) => true,
-                _ => false,
-            })
+            .filter(|point| matches!(data.get(*point), Some(Space::Empty | Space::End(_))))
             .collect();
 
         let parent_index = data.index(current).unwrap();
 
-        for adjacent in &adjacents {
+        for adjacent in &empty_adj {
             let adjacent_index = data.index(*adjacent).unwrap();
             pred[adjacent_index] = parent_index;
             if let Some(Space::End(_)) = data.get(*adjacent) {
@@ -126,7 +99,7 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
                 *data.get_mut(*adjacent).unwrap() = Space::Visited;
             }
         }
-        queue.append(&mut adjacents);
+        queue.append(&mut empty_adj);
     }
     let data = grid.lock().unwrap();
     let mut path: Vec<usize> = Vec::new();
