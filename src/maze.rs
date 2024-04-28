@@ -78,11 +78,11 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
     let mut end = 0;
 
     'outer: while !queue.is_empty() {
-        thread::sleep(Duration::from_millis(2));
+        thread::sleep(Duration::from_millis(1));
         let current = queue.pop_front().unwrap();
         let mut data = grid.lock().unwrap();
         let mut empty_adj: VecDeque<Point> = data
-            .adjacents_points(current)
+            .adjacent_points(current)
             .into_iter()
             .filter(|point| match data.get(*point) {
                 Some(s) => s.is_pathable(),
@@ -117,7 +117,7 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) {
     drop(data);
 
     for value in path {
-        thread::sleep(Duration::from_millis(15));
+        thread::sleep(Duration::from_millis(10));
         let mut data = grid.lock().unwrap();
         data.spaces[value] = Space::Path;
     }
