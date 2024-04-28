@@ -192,6 +192,51 @@ mod buffer_tests {
     }
 }
 
+// Assignment4_Tests Buffer
+#[cfg(test)]
+mod input_space_partioning_buffer {
+    // Input space partitioning
+    use crossterm::style::{Color, Colors};
+
+    use crate::buffer::*;
+
+    #[test]
+    fn test_input_space_base() {
+        // F F
+        let width = 10;
+        let height = 10;
+        let mut buf = Buffer::new(width, height);
+        let ch = 'X';
+        let colors = Colors::new(Color::Cyan, Color::Magenta);
+        let x = 5;
+        let y = 5;
+
+        let result = buf.put(x, y, ch, colors);
+
+        assert!(result.is_some());
+    }
+
+    // T F - Inviable 
+
+    // T T
+    #[test]
+    fn test_input_space_1() {
+        let width = 0;
+        let height = 0;
+        let mut buf = Buffer::new(width, height);
+        let ch = 'X';
+        let colors = Colors::new(Color::Cyan, Color::Magenta);
+        let x = 5;
+        let y = 5;
+
+        let result = buf.put(x, y, ch, colors);
+
+        assert!(result.is_none());
+    }
+
+    // F T - Invaible
+}
+
 // Assignment4_Tests Cell
 #[cfg(test)]
 mod cell_tests {

@@ -32,7 +32,7 @@ mod point_tests {
         assert_eq!(expected, actual)
     }
 
-    // Overflow occurs if input is usize::Max but for usability of the Point struct It is very
+    // Overflow occurs if input is usize::Max but for usability of the Point struct it is acceptable It is very
     // unlikely that a x and y will get that big
     #[test]
     fn test_fuzzy_point_index() {
