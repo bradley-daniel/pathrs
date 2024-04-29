@@ -33,7 +33,9 @@ fn main() -> std::io::Result<()> {
         let grid = Arc::new(Mutex::new(grid));
 
         let mut maze = maze::RandomMaze::new(grid);
-        maze.build_maze();
+        if maze.build_maze().is_none() {
+            continue;
+        }
         let start = maze.start;
 
         let thread_grid = maze.grid.clone();

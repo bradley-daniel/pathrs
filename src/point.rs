@@ -8,6 +8,13 @@ impl Point {
     pub fn new(x: usize, y: usize) -> Self {
         Self { x, y }
     }
+
+    pub fn from_index(index: usize, width: usize) -> Self {
+        let x = index % width;
+        let y = index / width;
+        Self { x, y }
+    }
+
     pub fn index(&self, width: usize) -> usize {
         self.y * width + self.x
     }
