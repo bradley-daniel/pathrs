@@ -92,10 +92,12 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) -> Option<()> {
 
     let mut end = None;
 
+    let mut visited_path = vec![];
+
     'outer: while !queue.is_empty() {
         thread::sleep(Duration::from_millis(1));
-        let current = queue.pop_front().unwrap();
         let mut data = grid.lock().unwrap();
+        let current = queue.pop_front().unwrap();
         let mut empty_adj: VecDeque<Point> = data
             .adjacent_points(current)
             .into_iter()
@@ -108,6 +110,7 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) -> Option<()> {
         let parent_index = data.unchecked_index(current);
 
         for adjacent in &empty_adj {
+            visited_path.push(*adjacent);
             let adjacent_index = data.unchecked_index(*adjacent);
             pred[adjacent_index] = parent_index;
             if let Some(Space::End(_)) = data.get(*adjacent) {
@@ -120,17 +123,16 @@ pub fn bfs(start: Point, grid: Arc<Mutex<Grid>>) -> Option<()> {
         queue.append(&mut empty_adj);
     }
 
-    let data = grid.lock().unwrap();
     let mut path: Vec<usize> = Vec::new();
 
     let end = end?;
     let mut crawl = pred[end];
-    while !matches!(data.spaces[crawl], Space::Start(_)) {
+    // let data = grid.lock().unwrap();
+    while !matches!(grid.lock().unwrap().spaces[crawl], Space::Start(_)) {
         path.push(crawl);
         crawl = pred[crawl];
     }
-
-    drop(data);
+    // drop(data);
 
     for value in path {
         thread::sleep(Duration::from_millis(10));

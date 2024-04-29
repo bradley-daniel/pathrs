@@ -65,7 +65,7 @@ fn writer_thread(maze_thread: JoinHandle<()>, maze: RandomMaze) -> std::io::Resu
     let (width, height) = terminal::size()?;
     let mut buf = Buffer::new(width as usize, height as usize);
     while !maze_thread.is_finished() {
-        std::thread::sleep(Duration::from_millis(15));
+        std::thread::sleep(Duration::from_millis(1));
         let grid = maze.grid.lock().unwrap();
         let _ = buf.flush_diff(&mut stdout, &grid);
     }
